@@ -1,0 +1,17 @@
+#!/bin/bash
+
+SIZE_THRESHOLD=90M
+
+# Find and ignore files larger than SIZE_THRESHOLD
+large_files=$(find . -not -path "./.git/*" -size +${SIZE_THRESHOLD} | sed 's|^\./||')
+
+for file in $large_files; do
+    grep -q "^$file$" .gitignore 2>/dev/null || echo "$file" >> .gitignore
+    git rm --cached --ignore-unmatch "$file" 2>/dev/null
+done
+
+# Add .gitignore if it was modified
+[ -n "$large_files" ] && git add .gitignore
+
+# Ensure hook always succeeds
+exit 0 
